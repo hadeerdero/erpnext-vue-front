@@ -23,19 +23,27 @@
 
       <div class="filter-group">
         <label>From Date</label>
-        <input type="date" v-model="filters.from_date" @change="fetchInvoices">
+        <input
+          type="date"
+          v-model="filters.from_date"
+          @change="fetchInvoices"
+        />
       </div>
 
       <div class="filter-group">
         <label>To Date</label>
-        <input type="date" v-model="filters.to_date" @change="fetchInvoices">
+        <input type="date" v-model="filters.to_date" @change="fetchInvoices" />
       </div>
 
       <div class="filter-group">
         <label>Customer</label>
         <select v-model="filters.customer" @change="fetchInvoices">
           <option value="">All Customers</option>
-          <option v-for="customer in customers" :value="customer.name" :key="customer.name">
+          <option
+            v-for="customer in customers"
+            :value="customer.name"
+            :key="customer.name"
+          >
             {{ customer.customer_name }}
           </option>
         </select>
@@ -77,9 +85,9 @@
               <button @click="printInvoice(invoice.name)" class="btn-print">
                 <span class="material-symbols-outlined">print</span>
               </button>
-              <button 
-                v-if="invoice.status === 'Draft'" 
-                @click="editInvoice(invoice.name)" 
+              <button
+                v-if="invoice.status === 'Draft'"
+                @click="editInvoice(invoice.name)"
                 class="btn-edit"
               >
                 <span class="material-symbols-outlined">edit</span>
@@ -98,15 +106,15 @@
       </div> -->
 
       <div class="pagination" v-if="totalPages > 1">
-        <button 
-          @click="changePage(currentPage - 1)" 
+        <button
+          @click="changePage(currentPage - 1)"
           :disabled="currentPage === 1"
         >
           Previous
         </button>
         <span>Page {{ currentPage }} of {{ totalPages }}</span>
-        <button 
-          @click="changePage(currentPage + 1)" 
+        <button
+          @click="changePage(currentPage + 1)"
           :disabled="currentPage === totalPages"
         >
           Next
@@ -117,30 +125,31 @@
 </template>
 
 <script>
-import axios from 'axios';
+// import axios from "axios";
+import api from "@/plugins/axios/axiosBusiness";
 
 export default {
-  name: 'SalesInvoiceList',
+  name: "SalesInvoiceList",
   data() {
     return {
       invoices: [],
       customers: [],
       // loading: false,
       filters: {
-        status: '',
-        from_date: '',
-        to_date: '',
-        customer: ''
+        status: "",
+        from_date: "",
+        to_date: "",
+        customer: "",
       },
       sort: {
-        field: 'posting_date',
-        order: 'desc'
+        field: "posting_date",
+        order: "desc",
       },
       pagination: {
         page: 1,
         page_size: 20,
-        total: 0
-      }
+        total: 0,
+      },
     };
   },
   computed: {
@@ -149,7 +158,7 @@ export default {
     },
     totalPages() {
       return Math.ceil(this.pagination.total / this.pagination.page_size);
-    }
+    },
   },
   created() {
     this.fetchInvoices();
@@ -160,74 +169,78 @@ export default {
       // this.loading = true;
       try {
         const params = {
-          doctype: 'Sales Invoice',
+          doctype: "Sales Invoice",
           fields: [
-            'name',
-            'customer',
-            'customer_name',
-            'posting_date',
-            'due_date',
-            'grand_total',
-            'status',
-            'outstanding_amount'
+            "name",
+            "customer",
+            "customer_name",
+            "posting_date",
+            "due_date",
+            "grand_total",
+            "status",
+            "outstanding_amount",
           ],
           limit_start: (this.currentPage - 1) * this.pagination.page_size,
           limit_page_length: this.pagination.page_size,
-          order_by: `${this.sort.field} ${this.sort.order}`
+          order_by: `${this.sort.field} ${this.sort.order}`,
         };
 
         // Add filters
         if (this.filters.status) {
-          params.filters = [['status', '=', this.filters.status]];
+          params.filters = [["status", "=", this.filters.status]];
         }
         if (this.filters.from_date) {
           params.filters = params.filters || [];
-          params.filters.push(['posting_date', '>=', this.filters.from_date]);
+          params.filters.push(["posting_date", ">=", this.filters.from_date]);
         }
         if (this.filters.to_date) {
           params.filters = params.filters || [];
-          params.filters.push(['posting_date', '<=', this.filters.to_date]);
+          params.filters.push(["posting_date", "<=", this.filters.to_date]);
         }
         if (this.filters.customer) {
           params.filters = params.filters || [];
-          params.filters.push(['customer', '=', this.filters.customer]);
+          params.filters.push(["customer", "=", this.filters.customer]);
         }
         // http://138.199.220.5:8001
-//         const api = axios.create({
-//   baseURL: ' http://138.199.220.5:8001'  // or your full base URL like 'https://yourdomain.com/api'
-// });
-        const response = await axios.get('/api/method/frappe.client.get_list', { params });
-        console.log('Invoices response:', response);
+        // const api = axios.create({
+        //   // baseURL: ' http://138.199.220.5:8001'  // or your full base URL like 'https://yourdomain.com/api'
+        //   baseURL: "http://172.29.82.206:8000",
+        // });
+        const response = await api.get("/api/method/frappe.client.get_list", {
+          params,
+        });
+        console.log("Invoices response:", response);
 
         this.invoices = response.data.message;
-        this.pagination.total = response.data.total || response.data.message.length;
+        this.pagination.total =
+          response.data.total || response.data.message.length;
       } catch (error) {
-        console.error('Error fetching invoices:', error);
-        this.$toast.error('Failed to load invoices');
+        console.error("Error fetching invoices:", error);
+        this.$toast.error("Failed to load invoices");
       } finally {
         // this.loading = false;
       }
     },
     async fetchCustomers() {
       try {
-        const response = await axios.get('/api/method/frappe.client.get_list', {
+        const response = await api.get("/api/method/frappe.client.get_list", {
           params: {
-            doctype: 'Customer',
-            fields: ['name', 'customer_name'],
-            limit: 100
-          }
+            doctype: "Customer",
+            fields: ["name", "customer_name"],
+            limit: 100,
+          },
         });
         this.customers = response.data.message;
       } catch (error) {
-        console.error('Error fetching customers:', error);
+        console.error("Error fetching customers:", error);
       }
     },
     sortInvoices(field) {
       if (this.sort.field === field) {
-        this.sort.order = this.sort.order === 'asc' ? 'desc' : 'asc';
+        this.sort.order = this.sort.order === "asc" ? "desc" : "asc";
       } else {
         this.sort.field = field;
-        this.sort.order = 'desc';
+        this.sort.order = "desc";
       }
       this.fetchInvoices();
     },
@@ -246,28 +259,28 @@ export default {
     async printInvoice(invoiceName) {
       try {
         const printUrl = `/api/method/frappe.utils.print_format.download_pdf?doctype=Sales%20Invoice&name=${invoiceName}&format=Standard&no_letterhead=0`;
-        window.open(printUrl, '_blank');
+        window.open(printUrl, "_blank");
       } catch (error) {
-        console.error('Error printing invoice:', error);
-        this.$toast.error('Failed to print invoice');
+        console.error("Error printing invoice:", error);
+        this.$toast.error("Failed to print invoice");
       }
     },
     formatDate(dateString) {
-      if (!dateString) return '';
+      if (!dateString) return "";
       return new Date(dateString).toLocaleDateString();
     },
     formatCurrency(amount) {
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
       }).format(amount);
     },
     isOverdue(invoice) {
-      if (invoice.status !== 'Unpaid') return false;
+      if (invoice.status !== "Unpaid") return false;
       if (!invoice.due_date) return false;
       return new Date(invoice.due_date) < new Date();
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -290,7 +303,7 @@ export default {
   align-items: center;
   gap: 8px;
   padding: 10px 15px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   text-decoration: none;
   border-radius: 4px;
@@ -330,7 +343,7 @@ export default {
   position: relative;
   background: white;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
@@ -339,7 +352,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   padding: 12px 15px;
   text-align: left;
   border-bottom: 1px solid #eee;
@@ -461,8 +475,12 @@ tr:hover {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .no-results {
@@ -498,7 +516,7 @@ tr:hover {
 }
 
 .material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 24;
   font-size: 18px;
 }
 </style>

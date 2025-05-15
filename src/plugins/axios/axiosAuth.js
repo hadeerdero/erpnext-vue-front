@@ -10,14 +10,12 @@
 //   // baseURL:  "http://160.153.175.147",
 //   // baseURL:  "http://127.0.0.1:8000",
 //   baseURL:  'http://138.199.220.5:8001',
-  
 
 //   headers: {
 //     'Content-Type': 'application/json',
 //   },
 // });
-        
-        
+
 // axiosAuth.interceptors.request.use(
 //   async (config) => {
 //   // Get the token from the store
@@ -44,7 +42,7 @@
 //     // Throw an error to cancel the request
 //     if (error.response && error.response.status === 500) {
 //         throw new Error('Internal Server Error');
-//     } 
+//     }
 //     // Check if the error is due to an expired token
 //     if (error.response.status === 401 && error.config && !error.config.__isRetryRequest) {
 //       // Set the __isRetryRequest flag to prevent an infinite loop
@@ -73,29 +71,28 @@
 // //   },
 // // });
 
-
 // // export {axiosAuth};
 
 // src/plugins/axios/axiosAuth.js
-import axios from 'axios';
+import axios from "axios";
 
 // Base configuration
 const axiosAuth = axios.create({
-  baseURL: 'http://138.199.220.5:8001', // Your ERPNext instance
-    withCredentials: true,
+  baseURL: "http://172.29.82.206:8000", // Your ERPNext instance
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  }
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
 // Request interceptor
 axiosAuth.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       // ERPNext uses "token {token}" format for authorization
-      config.headers['Authorization'] = `token ${token}`;
+      config.headers["Authorization"] = `token ${token}`;
     }
     return config;
   },
@@ -116,11 +113,11 @@ axiosAuth.interceptors.response.use(
       switch (error.response.status) {
         case 401:
           // Clear auth data if unauthorized
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
           break;
         case 500:
-          error.message = 'Internal Server Error';
+          error.message = "Internal Server Error";
           break;
       }
     }
@@ -129,11 +126,3 @@ axiosAuth.interceptors.response.use(
 );
 
 export { axiosAuth };
-
-
-
-
-
-
-
-
