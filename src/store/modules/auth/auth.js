@@ -1,58 +1,46 @@
+
 // import { axiosAuth } from "@/plugins/axios/axiosAuth";
 
 // const state = {
-//   token: localStorage.getItem("token") || null,
 //   user: JSON.parse(localStorage.getItem("user")) || null,
-//   status: "", // Can be 'loading', 'success', 'error'
-//   sid: localStorage.getItem("sid") || null, // Store session ID
-//   home_page: localStorage.getItem("home_page") || "/app/home",
+//   status: "", // 'loading', 'success', 'error'
+//   home_page: "/app/home", // Default home page
 // };
 
 // const getters = {
-//   isAuthenticated: (state) => !!state.sid, // Now checking sid instead of token
+//   isAuthenticated: (state) => !!state.user,
 //   authStatus: (state) => state.status,
 //   currentUser: (state) => state.user,
 //   homePage: (state) => state.home_page,
-//   hasRole: (state) => (role) => state.user && state.user.role === role,
+//   fullName: (state) => state.user?.full_name || null,
 // };
 
 // const mutations = {
 //   AUTH_REQUEST(state) {
 //     state.status = "loading";
 //   },
-//   AUTH_SUCCESS(state, { sid, user, home_page }) {
+//   AUTH_SUCCESS(state, { full_name, home_page }) {
 //     state.status = "success";
-//     state.sid = sid;
 //     state.user = {
-//       email: user,
-//       full_name: state.full_name,
+//       full_name: full_name,
 //     };
-//     state.home_page = home_page;
+//     state.home_page = home_page || "/app/home";
 
 //     // Persist in localStorage
-//     localStorage.setItem("sid", sid);
 //     localStorage.setItem("user", JSON.stringify(state.user));
-//     localStorage.setItem("home_page", home_page);
-//   },
-//   LOGOUT(state) {
-//     state.sid = null;
-//     state.user = null;
-//     state.home_page = "/app/home";
-//     localStorage.removeItem("sid");
-//     localStorage.removeItem("user");
-//     localStorage.removeItem("home_page");
+//     localStorage.setItem("home_page", state.home_page);
 //   },
 //   AUTH_ERROR(state) {
 //     state.status = "error";
-//     state.sid = null;
 //     state.user = null;
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("home_page");
 //   },
-//   SET_FULL_NAME(state, full_name) {
-//     state.full_name = full_name;
-//     if (state.user) {
-//       state.user.full_name = full_name;
-//       localStorage.setItem("user", JSON.stringify(state.user));
-//     }
+//   LOGOUT(state) {
+//     state.user = null;
+//     state.home_page = "/app/home";
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("home_page");
 //   },
 // };
 
@@ -61,28 +49,21 @@
 //     commit("AUTH_REQUEST");
 
 //     try {
-//       const response = await axiosAuth.post("/api/method/my_app.custom_login", {
+//       const response = await axiosAuth.post("/api/method/login", {
 //         usr: credentials.email,
 //         pwd: credentials.password,
 //       });
 
-//       // Extract data from response
-//       const { message } = response.data;
-//       const { sid, user, full_name, home_page } = message;
+//       const { full_name, home_page } = response.data;
 
-//       // Store session data
-//       commit("AUTH_SUCCESS", { sid, user, home_page });
-//       commit("SET_FULL_NAME", full_name);
-
-//       // Set CSRF token for subsequent requests
-//       axiosAuth.defaults.headers.common["X-Frappe-Sid"] = sid;
+//       commit("AUTH_SUCCESS", { 
+//         full_name, 
+//         home_page: home_page || "/app/home" 
+//       });
 
 //       return response.data;
 //     } catch (error) {
 //       commit("AUTH_ERROR");
-//       localStorage.removeItem("sid");
-//       localStorage.removeItem("user");
-//       delete axiosAuth.defaults.headers.common["X-Frappe-Sid"];
 //       throw error;
 //     }
 //   },
@@ -91,37 +72,6 @@
 //     try {
 //       await axiosAuth.post("/api/method/frappe.auth.logout");
 //     } finally {
-//       commit("LOGOUT");
-//       localStorage.removeItem("sid");
-//       localStorage.removeItem("user");
-//       delete axiosAuth.defaults.headers.common["X-Frappe-Sid"];
-//     }
-//   },
-
-//   checkAuth({ commit }) {
-//     const sid = localStorage.getItem("sid");
-//     if (sid) {
-//       const user = JSON.parse(localStorage.getItem("user"));
-//       axiosAuth.defaults.headers.common["X-Frappe-Sid"] = sid;
-//       commit("AUTH_SUCCESS", {
-//         sid,
-//         user: user.email,
-//         home_page: localStorage.getItem("home_page"),
-//       });
-//       commit("SET_FULL_NAME", user.full_name);
-//     }
-//   },
-
-//   // Optional: Refresh session
-//   async refreshSession({ state, commit }) {
-//     if (!state.sid) return;
-
-//     try {
-//       const response = await axiosAuth.get(
-//         "/api/method/frappe.auth.get_logged_user"
-//       );
-//       commit("SET_FULL_NAME", response.data.message.full_name);
-//     } catch (error) {
 //       commit("LOGOUT");
 //     }
 //   },
@@ -135,73 +85,161 @@
 //   actions,
 // };
 
+
+// src/store/modules/auth.js
+// import { axiosAuth } from "@/plugins/axios/axiosAuth";
+
+// const state = {
+//   user: JSON.parse(localStorage.getItem("user")) || null,
+//   token: localStorage.getItem("token") || null,
+//   status: "", // 'loading', 'success', 'error'
+//   home_page: "/app/home", // Default home page
+// };
+
+// const getters = {
+//   isAuthenticated: (state) => !!state.token,
+//   authStatus: (state) => state.status,
+//   currentUser: (state) => state.user,
+//   homePage: (state) => state.home_page,
+//   fullName: (state) => state.user?.full_name || null,
+//   authToken: (state) => state.token,
+// };
+
+// const mutations = {
+//   AUTH_REQUEST(state) {
+//     state.status = "loading";
+//   },
+//   AUTH_SUCCESS(state, { user, token, home_page }) {
+//     state.status = "success";
+//     state.user = user;
+//     state.token = token;
+//     state.home_page = home_page || "/app/home";
+
+//     // Persist in localStorage
+//     localStorage.setItem("user", JSON.stringify(user));
+//     localStorage.setItem("token", token);
+//     localStorage.setItem("home_page", state.home_page);
+//   },
+//   AUTH_ERROR(state) {
+//     state.status = "error";
+//     state.user = null;
+//     state.token = null;
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("token");
+//     localStorage.removeItem("home_page");
+//   },
+//   LOGOUT(state) {
+//     state.user = null;
+//     state.token = null;
+//     state.home_page = "/app/home";
+//     localStorage.removeItem("user");
+//     localStorage.removeItem("token");
+//     localStorage.removeItem("home_page");
+//   },
+// };
+
+// const actions = {
+//   async login({ commit }, credentials) {
+//     commit("AUTH_REQUEST");
+
+//     try {
+//       const response = await axiosAuth.post("/api/method/login", {
+//         usr: credentials.email,
+//         pwd: credentials.password,
+//       });
+
+//       // ERPNext returns the full_name in the response
+//       const user = {
+//         full_name: response.data.full_name,
+//         email: credentials.email
+//       };
+
+//       // ERPNext returns the token in the response
+//       const token = response.data.token || response.data.api_key;
+
+//       commit("AUTH_SUCCESS", { 
+//         user,
+//         token,
+//         home_page: response.data.home_page || "/app/home" 
+//       });
+
+//       return response.data;
+//     } catch (error) {
+//       commit("AUTH_ERROR");
+//       throw error;
+//     }
+//   },
+
+//   async logout({ commit }) {
+//     try {
+//       await axiosAuth.post("/api/method/logout");
+//     } catch (error) {
+//       console.error("Logout error:", error);
+//     } finally {
+//       commit("LOGOUT");
+//     }
+//   },
+
+//   async verifyToken({ state }) {
+//     if (!state.token) return false;
+    
+//     try {
+//       const response = await axiosAuth.get("/api/method/frappe.auth.get_logged_user");
+//       return !!response.data;
+//     } catch (error) {
+//       return false;
+//     }
+//   }
+// };
+
+// export default {
+//   namespaced: true,
+//   state,
+//   getters,
+//   mutations,
+//   actions,
+// };
+
+
+// src/store/modules/auth.js
 import { axiosAuth } from "@/plugins/axios/axiosAuth";
 
 const state = {
-  token: localStorage.getItem("token") || null,
   user: JSON.parse(localStorage.getItem("user")) || null,
   status: "", // 'loading', 'success', 'error'
-  sid: localStorage.getItem("sid") || null,
-  home_page: localStorage.getItem("home_page") || "/desk",
-  full_name: localStorage.getItem("full_name") || null,
+  home_page: localStorage.getItem("home_page") || "/app/home",
 };
 
 const getters = {
-  isAuthenticated: (state) => !!state.sid,
+  isAuthenticated: (state) => !!state.user,
   authStatus: (state) => state.status,
   currentUser: (state) => state.user,
   homePage: (state) => state.home_page,
-  fullName: (state) => state.full_name,
-  hasRole: (state) => (role) =>
-    state.user && state.user.roles && state.user.roles.includes(role),
+  fullName: (state) => state.user?.full_name || null,
 };
 
 const mutations = {
   AUTH_REQUEST(state) {
     state.status = "loading";
   },
-  AUTH_SUCCESS(state, { sid, user, home_page, full_name }) {
+  AUTH_SUCCESS(state, { user, home_page }) {
     state.status = "success";
-    state.sid = sid;
-    state.user = {
-      email: user,
-      full_name: full_name,
-      roles: state.user?.roles || [],
-    };
-    state.home_page = home_page;
-    state.full_name = full_name;
-
-    // Persist in localStorage
-    localStorage.setItem("sid", sid);
-    localStorage.setItem("user", JSON.stringify(state.user));
-    localStorage.setItem("home_page", home_page);
-    localStorage.setItem("full_name", full_name);
+    state.user = user;
+    state.home_page = home_page || "/app/home";
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("home_page", state.home_page);
   },
   AUTH_ERROR(state) {
     state.status = "error";
-    state.sid = null;
     state.user = null;
-    state.full_name = null;
-    localStorage.removeItem("sid");
     localStorage.removeItem("user");
     localStorage.removeItem("home_page");
-    localStorage.removeItem("full_name");
   },
   LOGOUT(state) {
-    state.sid = null;
     state.user = null;
-    state.home_page = "/desk";
-    state.full_name = null;
-    localStorage.removeItem("sid");
+    state.home_page = "/app/home";
     localStorage.removeItem("user");
     localStorage.removeItem("home_page");
-    localStorage.removeItem("full_name");
-  },
-  SET_USER_ROLES(state, roles) {
-    if (state.user) {
-      state.user.roles = roles;
-      localStorage.setItem("user", JSON.stringify(state.user));
-    }
   },
 };
 
@@ -210,105 +248,86 @@ const actions = {
     commit("AUTH_REQUEST");
 
     try {
-      const response = await axiosAuth.post("/api/method/my_app.custom_login", {
+      // 1. Make login request - this sets the session cookie
+    const response =   await axiosAuth.post("/api/method/login", {
         usr: credentials.email,
         pwd: credentials.password,
       });
 
-      const { message } = response.data;
-      const { sid, user, full_name, home_page } = message;
+      // 2. Get user details to verify login was successful
+      // const userResponse = await axiosAuth.get("/api/method/frappe.auth.get_logged_user");
+      // console.log("User response:", userResponse);
+      // const userData = userResponse.data.message;
 
-      // Set critical cookies for Frappe desk
-      document.cookie = `sid=${sid}; path=/; ${
-        process.env.NODE_ENV === "production"
-          ? "domain=.yourdomain.com; Secure; SameSite=Lax"
-          : ""
-      }`;
-      document.cookie = `user_id=${user}; path=/; ${
-        process.env.NODE_ENV === "production"
-          ? "domain=.yourdomain.com; Secure; SameSite=Lax"
-          : ""
-      }`;
-      document.cookie = `full_name=${encodeURIComponent(full_name)}; path=/; ${
-        process.env.NODE_ENV === "production"
-          ? "domain=.yourdomain.com; Secure; SameSite=Lax"
-          : ""
-      }`;
+      // if (!userData) {
+      //   throw new Error("Login failed - no user data received");
+      // }
 
-      // Configure axios for future requests
-      axiosAuth.defaults.headers.common["X-Frappe-Sid"] = sid;
+      const user = {
+        full_name:  response.full_name,
+        email: credentials.email,
+      };
 
-      commit("AUTH_SUCCESS", { sid, user, home_page, full_name });
+      commit("AUTH_SUCCESS", {
+        user,
+        home_page: "/app/home"
+      });
 
-      // Fetch user roles if needed
-      await this.dispatch("fetchUserRoles");
-
-      return response.data;
+      return user;
     } catch (error) {
       commit("AUTH_ERROR");
-      delete axiosAuth.defaults.headers.common["X-Frappe-Sid"];
-      throw error;
-    }
-  },
-
-  async fetchUserRoles({ commit }) {
-    try {
-      const response = await axiosAuth.get(
-        "/api/method/frappe.auth.get_logged_user"
-      );
-      const roles = response.data.message.roles.map((r) => r.role);
-      commit("SET_USER_ROLES", roles);
-    } catch (error) {
-      console.error("Failed to fetch user roles:", error);
+      
+      let errorMessage = "Login failed";
+      if (error.response) {
+        if (error.response.data && error.response.data.message) {
+          errorMessage = typeof error.response.data.message === 'string' 
+            ? error.response.data.message
+            : error.response.data.message.error || errorMessage;
+        } else if (error.response.status === 401) {
+          errorMessage = "Invalid email or password";
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
   },
 
   async logout({ commit }) {
     try {
-      await axiosAuth.post("/api/method/frappe.auth.logout");
+      await axiosAuth.post("/api/method/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
     } finally {
       commit("LOGOUT");
-      delete axiosAuth.defaults.headers.common["X-Frappe-Sid"];
-
-      // Clear Frappe cookies
-      document.cookie = "sid=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      document.cookie =
-        "user_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-      document.cookie =
-        "full_name=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
     }
   },
 
-  checkAuth({ commit }) {
-    const sid = localStorage.getItem("sid");
-    if (sid) {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const full_name = localStorage.getItem("full_name");
-      const home_page = localStorage.getItem("home_page") || "/desk";
-
-      axiosAuth.defaults.headers.common["X-Frappe-Sid"] = sid;
-
-      commit("AUTH_SUCCESS", {
-        sid,
-        user: user?.email || "",
-        home_page,
-        full_name,
-      });
-
-      // Verify session is still valid
-      this.dispatch("verifySession");
-    }
-  },
-
-  async verifySession({ commit, state }) {
-    if (!state.sid) return;
-
+  async verifyAuth({ state, commit }) {
     try {
-      await axiosAuth.get("/api/method/frappe.auth.get_logged_user");
+      const response = await axiosAuth.get("/api/method/frappe.auth.get_logged_user");
+      if (response.data && response.data.message) {
+        // Update user data if needed
+        const userData = response.data.message;
+        const updatedUser = {
+          ...state.user,
+          full_name: userData.full_name || state.user?.full_name,
+          user_image: userData.user_image || state.user?.user_image
+        };
+        
+        commit("AUTH_SUCCESS", {
+          user: updatedUser,
+          home_page: state.home_page
+        });
+        return true;
+      }
+      return false;
     } catch (error) {
-      commit("LOGOUT");
+      if (error.response && error.response.status === 401) {
+        commit("LOGOUT");
+      }
+      return false;
     }
-  },
+  }
 };
 
 export default {

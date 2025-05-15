@@ -5,8 +5,8 @@ import store from "./store";
 import Toast from 'vue-toastification'
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-store.dispatch('auth/checkAuth');
-
+// main.js or App.vue
+// store.dispatch('app/initializeSidebar');
 const toastOptions = {
     timeout: 3000,
     closeOnClick: true,

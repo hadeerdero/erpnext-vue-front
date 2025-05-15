@@ -19,7 +19,7 @@ export default {
   name: "PreloaderComponent",
   data() {
     return {
-      letters: ["T", "R", "E", "Z", "O"], 
+      letters: ["I","N","T","L","A","Q"] 
     };
   },
 };
@@ -47,11 +47,11 @@ export default {
   <div class="preloader" id="preloader">
     <div class="preloader">
       <div class="waviy position-relative">
-        <span class="d-inline-block">B</span>
+        <span class="d-inline-block">N</span>
+        <span class="d-inline-block">T</span>
         <span class="d-inline-block">L</span>
-        <span class="d-inline-block">O</span>
-        <span class="d-inline-block">O</span>
-        <span class="d-inline-block">D</span>
+        <span class="d-inline-block">A</span>
+        <span class="d-inline-block">Q</span>
       </div>
     </div>
   </div>
