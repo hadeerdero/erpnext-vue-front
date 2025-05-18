@@ -44,7 +44,7 @@
             :value="customer.name"
             :key="customer.name"
           >
-            {{ customer.customer_name }}
+            {{ customer.name }}
           </option>
         </select>
       </div>
