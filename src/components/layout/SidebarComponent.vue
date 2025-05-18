@@ -150,6 +150,13 @@
           </router-link>
         </li>
 
+         <li class="menu-item" :class="{ 'active': $route.path === '/customer-management' }">
+          <router-link to="/customer-management" class="menu-link">
+            <span class="material-symbols-outlined menu-icon">receipt_long</span>
+            <span class="title">Customer Management</span>
+          </router-link>
+        </li>
+
         <!-- Logout Menu Item -->
         <li class="menu-item">
           <a href="#" class="menu-link" @click.prevent="logout">

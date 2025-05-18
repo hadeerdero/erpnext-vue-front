@@ -110,9 +110,13 @@ import DonationView from "@/views/DonationView.vue";
 import SalesInvoiceView from "@/views/SalesInvoiceView.vue";
 import SalesInvoiceListView from "@/views/SalesInvoiceListView.vue";
 // import DonationRequestsManagementView from "@/views/stock/DonationRequestsManagementView"
-
+import CustomerManagementView from "@/views/CustomerManagementView.vue";
 const routes = [
-  
+   {
+    path: '/customer-management',
+    name: 'customer-management',
+    component: CustomerManagementView
+  },
   {
     path: '/sales-invoices',
     name: 'sales-invoices',
