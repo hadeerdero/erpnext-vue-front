@@ -203,6 +203,7 @@
 
 // src/store/modules/auth.js
 import { axiosAuth } from "@/plugins/axios/axiosAuth";
+import api from "@/plugins/axios/axiosBusiness"; // Adjust the import path as necessary
 
 const state = {
   user: JSON.parse(localStorage.getItem("user")) || null,
@@ -244,54 +245,191 @@ const mutations = {
 };
 
 const actions = {
-  async login({ commit }, credentials) {
-    commit("AUTH_REQUEST");
-
+    async initializeApp({ commit }) {
     try {
-      // 1. Make login request - this sets the session cookie
-    const response =   await axiosAuth.post("/api/method/login", {
-        usr: credentials.email,
-        pwd: credentials.password,
+      // Verify existing session
+      const response = await api.get('/api/method/frappe.auth.get_logged_user');
+      
+      commit('AUTH_SUCCESS', {
+        user: {
+          full_name: response.data.message.full_name,
+          email: response.data.message.name
+        },
+        home_page: '/app'
       });
-
-      // 2. Get user details to verify login was successful
-      // const userResponse = await axiosAuth.get("/api/method/frappe.auth.get_logged_user");
-      // console.log("User response:", userResponse);
-      // const userData = userResponse.data.message;
-
-      // if (!userData) {
-      //   throw new Error("Login failed - no user data received");
-      // }
-
-      const user = {
-        full_name:  response.full_name,
-        email: credentials.email,
-      };
-
-      commit("AUTH_SUCCESS", {
-        user,
-        home_page: "/app/home"
-      });
-
-      return user;
     } catch (error) {
-      commit("AUTH_ERROR");
-      
-      let errorMessage = "Login failed";
-      if (error.response) {
-        if (error.response.data && error.response.data.message) {
-          errorMessage = typeof error.response.data.message === 'string' 
-            ? error.response.data.message
-            : error.response.data.message.error || errorMessage;
-        } else if (error.response.status === 401) {
-          errorMessage = "Invalid email or password";
-        }
-      }
-      
-      throw new Error(errorMessage);
+      commit('LOGOUT');
     }
   },
+  // async login({ commit }, credentials) {
+  //   commit("AUTH_REQUEST");
 
+  //   try {
+  //     // 1. Make login request - this sets the session cookie
+  //   const response =   await axiosAuth.post("/api/method/login", {
+  //       usr: credentials.email,
+  //       pwd: credentials.password,
+  //     });
+
+      
+
+  //     const user = {
+  //       full_name:  response.full_name,
+  //       email: credentials.email,
+  //     };
+
+  //     commit("AUTH_SUCCESS", {
+  //       user,
+  //       home_page: "/app/home"
+  //     });
+
+  //     return user;
+  //   } catch (error) {
+  //     commit("AUTH_ERROR");
+      
+  //     let errorMessage = "Login failed";
+  //     if (error.response) {
+  //       if (error.response.data && error.response.data.message) {
+  //         errorMessage = typeof error.response.data.message === 'string' 
+  //           ? error.response.data.message
+  //           : error.response.data.message.error || errorMessage;
+  //       } else if (error.response.status === 401) {
+  //         errorMessage = "Invalid email or password";
+  //       }
+  //     }
+      
+  //     throw new Error(errorMessage);
+  //   }
+  // },
+// async login({ commit }, credentials) {
+//   commit("AUTH_REQUEST");
+
+//   try {
+//     // Make login request to set the session cookie
+//     const response = await axiosAuth.post("/api/method/login", {
+//       usr: credentials.email,
+//       pwd: credentials.password,
+//     });
+
+//     // Check response data
+//     if (response.data.message !== "Logged In") {
+//       throw new Error("Login failed: Invalid response from server");
+//     }
+
+//     const user = {
+//       full_name: response.data.full_name, // Correctly access data
+//       email: credentials.email,
+//     };
+
+//     // Store user data and home page
+//     localStorage.setItem("user", JSON.stringify(user));
+//     localStorage.setItem("home_page", "/app/home");
+
+//     commit("AUTH_SUCCESS", {
+//       user,
+//       home_page: "/app/home"
+//     });
+
+//     return user;
+//   } catch (error) {
+//     commit("AUTH_ERROR");
+    
+//     let errorMessage = "Login failed";
+//     if (error.response) {
+//       if (error.response.data && error.response.data.message) {
+//         errorMessage = typeof error.response.data.message === 'string' 
+//           ? error.response.data.message
+//           : error.response.data.message.error || errorMessage;
+//       } else if (error.response.status === 401) {
+//         errorMessage = "Invalid email or password";
+//       }
+//     }
+    
+//     throw new Error(errorMessage);
+//   }
+// },
+
+async login({ commit }, credentials) {
+  commit("AUTH_REQUEST");
+
+  try {
+    // Make login request to authenticate user
+    const response = await axiosAuth.post("/api/method/login", {
+      usr: credentials.email,
+      pwd: credentials.password,
+    });
+
+    // Check response data
+    if (response.data.message !== "Logged In") {
+      throw new Error("Login failed: Invalid response from server");
+    }
+
+    const user = {
+      full_name: response.data.full_name,
+      email: credentials.email,
+    };
+
+    // Assume API key and secret are provided via credentials or fetched separately
+    // In ERPNext, users typically generate these in the UI and provide them
+    let apiToken = '';
+    let api_key = '25ff96dde4340ca'
+    let api_secret = '4e11b6e30035b92';
+    if (api_key && api_secret) {
+      apiToken = `${api_key}:${api_secret}`;
+      localStorage.setItem("api_token", apiToken);
+    } else {
+      // Optionally, fetch API token via a separate API call if your ERPNext setup supports it
+      // For example: await axiosAuth.get("/api/method/frappe.core.doctype.user.user.generate_api_key")
+      console.warn("API key and secret not provided; token-based auth may not work");
+    }
+
+    // Store user data and home page
+    localStorage.setItem("user", JSON.stringify(user));
+    localStorage.setItem("home_page", "/app/home");
+
+    commit("AUTH_SUCCESS", {
+      user,
+      home_page: "/app/home"
+    });
+
+    return user;
+  } catch (error) {
+    commit("AUTH_ERROR");
+    
+    let errorMessage = "Login failed";
+    if (error.response) {
+      if (error.response.data && error.response.data.message) {
+        errorMessage = typeof error.response.data.message === 'string' 
+          ? error.response.data.message
+          : error.response.data.message.error || errorMessage;
+      } else if (error.response.status === 401) {
+        errorMessage = "Invalid email or password";
+      }
+    }
+    
+    throw new Error(errorMessage);
+  }
+},
+async checkSession({ commit }) {
+  try {
+    const response = await axiosAuth.get("/api/method/frappe.auth.get_logged_user");
+    const user = {
+      email: response.data,
+      full_name: response.data, // You can fetch full_name separately if needed
+    };
+    commit("AUTH_SUCCESS", {
+      user,
+      home_page: "/app/home"
+    });
+    return user;
+  } catch (error) {
+    commit("AUTH_ERROR");
+    localStorage.removeItem("csrf_token");
+    localStorage.removeItem("user");
+    localStorage.removeItem("home_page");
+    throw error;
+  }
+},
   async logout({ commit }) {
     try {
       await axiosAuth.post("/api/method/logout");

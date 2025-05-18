@@ -132,77 +132,252 @@
 
 // export default api;
 
-import axios from "axios";
+// import axios from "axios";
+
+// const api = axios.create({
+//   // baseURL: "http://172.29.82.206:8000", // ERPNext API base URL
+//   baseURL: 'http://138.199.220.5:8001',
+//   // withCredentials: true, // Required for session cookies
+//   credentials: 'include',
+//   headers: {
+//     "Content-Type": "application/json",
+//     Accept: "application/json",
+//     "X-Frappe-Site-Name": "mynewsite.local", // Add your site name here
+//   },
+// });
+
+// // Request interceptor for adding CSRF token and handling authentication
+// api.interceptors.request.use(async (config) => {
+//   // Add CSRF token for state-changing requests
+//   if (
+//     ["post", "put", "delete", "patch"].includes(config.method?.toLowerCase())
+//   ) {
+//     try {
+//       // Get fresh CSRF token for each request
+//       const csrfResponse = await axios.get(
+//         `${config.baseURL}/api/method/frappe.csrf_token.get_token`,
+//         {
+//           // withCredentials: true,
+//           credentials: 'include'
+//         }
+//       );
+//       config.headers["X-Frappe-CSRF-Token"] = csrfResponse.data.token;
+//     } catch (error) {
+//       console.error("Failed to get CSRF token", error);
+//     }
+//   }
+
+//   return config;
+// });
+
+// // Response interceptor to handle errors globally
+// api.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+
+//     // If 401 Unauthorized, try to refresh session
+//     if (error.response?.status === 401 && !originalRequest._retry) {
+//       originalRequest._retry = true;
+
+//       try {
+//         // Attempt to login again
+//         await axios.post(
+//           `${originalRequest.baseURL}/api/method/login`,
+//           {
+//             usr: "your_admin_email@example.com",
+//             pwd: "your_password",
+//           },
+//           {
+//             // withCredentials: true,
+//             credentials: 'include',
+//             headers: {
+//               "X-Frappe-Site-Name": "mynewsite.local",
+//             },
+//           }
+//         );
+
+//         // Retry the original request
+//         return api(originalRequest);
+//       } catch (loginError) {
+//         console.error("Re-authentication failed", loginError);
+//         return Promise.reject(loginError);
+//       }
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
+// export default api;
+
+
+
+// import axios from "axios";
+
+// // Helper function to get cookie by name
+// const getCookie = (name) => {
+//   const value = `; ${document.cookie}`;
+//   const parts = value.split(`; ${name}=`);
+//   if (parts.length === 2) return parts.pop().split(';').shift();
+// };
+
+// const api = axios.create({
+//   baseURL: 'http://138.199.220.5:8001',
+//   withCredentials: true, // Important for cookie handling
+//   headers: {
+//     "Content-Type": "application/json",
+//     Accept: "application/json",
+//     "X-Frappe-Site-Name": "mynewsite.local"
+//   }
+// });
+
+// // Request interceptor to handle cookies and CSRF
+// api.interceptors.request.use(async (config) => {
+//   // 1. Get and attach sid cookie
+//   const sid = getCookie('sid');
+//   if (sid) {
+//     config.headers.Cookie = `sid=${sid}`;
+//   }
+
+//   // 2. Add CSRF token for state-changing requests
+//   if (["post", "put", "delete", "patch"].includes(config.method?.toLowerCase())) {
+//     try {
+//       const csrfResponse = await axios.get(
+//         `${config.baseURL}/api/method/frappe.csrf_token.get_token`,
+//         {
+//           withCredentials: true,
+//           headers: {
+//             'X-Frappe-Site-Name': 'mynewsite.local',
+//             ...(sid ? { Cookie: `sid=${sid}` } : {})
+//           }
+//         }
+//       );
+//       config.headers["X-Frappe-CSRF-Token"] = csrfResponse.data.token;
+//     } catch (error) {
+//       console.error("CSRF token fetch failed", error);
+//     }
+//   }
+
+//   return config;
+// });
+
+// // Response interceptor
+// api.interceptors.response.use(
+//   (response) => response,
+//   async (error) => {
+//     const originalRequest = error.config;
+
+//     // Handle 401 errors
+//     if (error.response?.status === 401 && !originalRequest._retry) {
+//       originalRequest._retry = true;
+      
+//       try {
+//         // Attempt to re-authenticate
+//         await axios.post(
+//           `${originalRequest.baseURL}/api/method/login`,
+//           {
+//             usr: "your_admin_email@example.com",
+//             pwd: "your_password"
+//           },
+//           {
+//             withCredentials: true,
+//             headers: {
+//               "X-Frappe-Site-Name": "mynewsite.local"
+//             }
+//           }
+//         );
+
+//         // Get new sid after re-auth
+//         const newSid = getCookie('sid');
+//         if (newSid) {
+//           originalRequest.headers.Cookie = `sid=${newSid}`;
+//         }
+
+//         return api(originalRequest);
+//       } catch (loginError) {
+//         console.error("Re-authentication failed", loginError);
+//         return Promise.reject(loginError);
+//       }
+//     }
+
+//     return Promise.reject(error);
+//   }
+// );
+
+// export default api;
+
+
+// api.js
+// import axios from 'axios';
+
+// const api = axios.create({
+//   baseURL: 'http://138.199.220.5:8001',
+//   withCredentials: true,
+//   headers: {
+//     'X-Frappe-Site-Name': 'mynewsite.local'
+//   }
+// });
+
+// // Request interceptor to maintain session
+// api.interceptors.request.use(config => {
+//   // Get current cookies
+//   const cookies = document.cookie.split(';').reduce((cookies, item) => {
+//     const [name, value] = item.trim().split('=');
+//     cookies[name] = value;
+//     return cookies;
+//   }, {});
+
+//   // Ensure critical cookies exist
+//   if (!cookies.sid || cookies.system_user !== "yes") {
+//     window.location.href = '/login'; // Redirect if session invalid
+//   }
+
+//   return config;
+// });
+
+// export default api;
+
+
+import axios from 'axios';
+
+// Replace these with your actual API credentials
+const API_KEY = '25ff96dde4340ca';
+const API_SECRET = '4e11b6e30035b92';
 
 const api = axios.create({
-  baseURL: "http://172.29.82.206:8000", // ERPNext API base URL
-  withCredentials: true, // Required for session cookies
+  baseURL: 'http://138.199.220.5:8001',
+  withCredentials: true,
   headers: {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    "X-Frappe-Site-Name": "mynewsite", // Add your site name here
-  },
+    'X-Frappe-Site-Name': 'mynewsite.local',
+    'Authorization': `token ${API_KEY}:${API_SECRET}` // Add API key authorization
+  }
 });
 
-// Request interceptor for adding CSRF token and handling authentication
-api.interceptors.request.use(async (config) => {
-  // Add CSRF token for state-changing requests
-  if (
-    ["post", "put", "delete", "patch"].includes(config.method?.toLowerCase())
-  ) {
-    try {
-      // Get fresh CSRF token for each request
-      const csrfResponse = await axios.get(
-        `${config.baseURL}/api/method/frappe.csrf_token.get_token`,
-        {
-          withCredentials: true,
-        }
-      );
-      config.headers["X-Frappe-CSRF-Token"] = csrfResponse.data.token;
-    } catch (error) {
-      console.error("Failed to get CSRF token", error);
+// Request interceptor to maintain session and handle auth
+api.interceptors.request.use(config => {
+  // Get current cookies
+  const cookies = document.cookie.split(';').reduce((cookies, item) => {
+    const [name, value] = item.trim().split('=');
+    cookies[name] = value;
+    return cookies;
+  }, {});
+
+  // Ensure critical cookies exist
+  if (!cookies.sid || cookies.system_user !== "yes") {
+    // If session is invalid but we have API keys, we can still proceed
+    if (!API_KEY || !API_SECRET) {
+      // window.location.href = '/login'; // Redirect if no API auth available
     }
   }
+
+  // Merge headers - API key takes precedence
+  config.headers = {
+    ...config.headers,
+    'Authorization': `token ${API_KEY}:${API_SECRET}`
+  };
 
   return config;
 });
-
-// Response interceptor to handle errors globally
-api.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    // If 401 Unauthorized, try to refresh session
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      try {
-        // Attempt to login again
-        await axios.post(
-          `${originalRequest.baseURL}/api/method/login`,
-          {
-            usr: "your_admin_email@example.com",
-            pwd: "your_password",
-          },
-          {
-            withCredentials: true,
-            headers: {
-              "X-Frappe-Site-Name": "mynewsite",
-            },
-          }
-        );
-
-        // Retry the original request
-        return api(originalRequest);
-      } catch (loginError) {
-        console.error("Re-authentication failed", loginError);
-        return Promise.reject(loginError);
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
 
 export default api;

@@ -110,11 +110,15 @@ export default {
   },
   mounted() {
     this.checkAuthAndRedirect(); // Check auth status immediately
+  // this.$store.dispatch('auth/initializeApp');
     
     setTimeout(() => {
       this.isLoading = false;
     }, 2000);
   },
+  created() {
+  // this.$store.dispatch('auth/initializeApp');
+},
   watch: {
     // Re-check auth status when route changes
     $route() {

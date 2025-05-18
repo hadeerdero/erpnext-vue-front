@@ -342,7 +342,7 @@ export default {
                   <div class="form-group mb-4">
                     <label class="label text-secondary">Email Address</label>
                     <input
-                      type="email"
+                      type="text"
                       v-model="form.email"
                       class="form-control h-55"
                       placeholder="example@trezo.com"

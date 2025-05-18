@@ -223,7 +223,12 @@ export default {
     },
     async fetchCustomers() {
       try {
+          const cookies = document.cookie; // Or use a cookie library (e.g., `js-cookie`)
+          console.log("Cookies:", cookies);
         const response = await api.get("/api/method/frappe.client.get_list", {
+    headers: {
+        'Cookie': cookies, // Manually set cookies in headers
+      },
           params: {
             doctype: "Customer",
             fields: ["name", "customer_name"],
