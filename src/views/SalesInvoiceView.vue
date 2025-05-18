@@ -1,14 +1,18 @@
 <template>
   <div class="sales-invoice-form">
     <h2>Create Sales Invoice</h2>
-    
+
     <form @submit.prevent="submitInvoice">
       <!-- Customer Selection -->
       <div class="form-group">
         <label>Customer</label>
         <select v-model="form.customer" required>
           <option value="" disabled>Select Customer</option>
-          <option v-for="customer in customers" :value="customer.name" :key="customer.name">
+          <option
+            v-for="customer in customers"
+            :value="customer.name"
+            :key="customer.name"
+          >
             {{ customer.name }}
           </option>
         </select>
@@ -17,12 +21,12 @@
       <!-- Invoice Details -->
       <div class="form-group">
         <label>Posting Date</label>
-        <input type="date" v-model="form.posting_date" required>
+        <input type="date" v-model="form.posting_date" required />
       </div>
 
       <div class="form-group">
         <label>Due Date</label>
-        <input type="date" v-model="form.due_date" required>
+        <input type="date" v-model="form.due_date" required />
       </div>
 
       <!-- Items Table -->
@@ -41,24 +45,50 @@
           <tbody>
             <tr v-for="(item, index) in form.items" :key="index">
               <td>
-                <select v-model="item.item_code" @change="updateItemDetails(index)" required>
+                <select
+                  v-model="item.item_code"
+                  @change="updateItemDetails(index)"
+                  required
+                >
                   <option value="" disabled>Select Item</option>
-                  <option v-for="product in items" :value="product.name" :key="product.name">
+                  <option
+                    v-for="product in items"
+                    :value="product.name"
+                    :key="product.name"
+                  >
                     {{ product.name }}
                   </option>
                 </select>
               </td>
               <td>
-                <input type="number" v-model.number="item.qty" min="1" @input="calculateAmount(index)" required>
+                <input
+                  type="number"
+                  v-model.number="item.qty"
+                  min="1"
+                  @input="calculateAmount(index)"
+                  required
+                />
               </td>
               <td>
-                <input type="number" v-model.number="item.rate" step="0.01" @input="calculateAmount(index)" required>
+                <input
+                  type="number"
+                  v-model.number="item.rate"
+                  step="0.01"
+                  @input="calculateAmount(index)"
+                  required
+                />
               </td>
               <td>
                 {{ item.amount || 0 }}
               </td>
               <td>
-                <button type="button" @click="removeItem(index)" class="btn-remove">×</button>
+                <button
+                  type="button"
+                  @click="removeItem(index)"
+                  class="btn-remove"
+                >
+                  ×
+                </button>
               </td>
             </tr>
           </tbody>
@@ -71,14 +101,14 @@
         <label>Taxes and Charges</label>
         <select v-model="form.taxes" multiple>
           <option v-for="tax in taxes" :value="tax.name" :key="tax.name">
-            {{ tax.name }} 
+            {{ tax.name }}
           </option>
         </select>
       </div>
 
       <!-- Submit Button -->
       <button type="submit" :disabled="loading" class="btn-submit">
-        {{ loading ? 'Creating Invoice...' : 'Create Invoice' }}
+        {{ loading ? "Creating Invoice..." : "Create Invoice" }}
       </button>
 
       <!-- Status Messages -->
@@ -93,29 +123,31 @@
 </template>
 
 <script>
-import axios from 'axios';
-
+// import axios from 'axios';
+import api from "@/plugins/axios/axiosBusiness";
 export default {
   data() {
     return {
       form: {
-        customer: '',
+        customer: "",
         posting_date: new Date().toISOString().slice(0, 10),
-        due_date: '',
-        items: [{
-          item_code: '',
-          qty: 1,
-          rate: 0,
-          amount: 0
-        }],
-        taxes: []
+        due_date: "",
+        items: [
+          {
+            item_code: "",
+            qty: 1,
+            rate: 0,
+            amount: 0,
+          },
+        ],
+        taxes: [],
       },
       customers: [],
       items: [],
       taxes: [],
       loading: false,
       error: null,
-      success: null
+      success: null,
     };
   },
   created() {
@@ -126,53 +158,53 @@ export default {
   methods: {
     async fetchCustomers() {
       try {
-        const response = await axios.get('/api/method/frappe.client.get_list', {
+        const response = await api.get("/api/method/frappe.client.get_list", {
           params: {
-            doctype: 'Customer',
-            fields: ['name', 'customer_name'],
-            limit: 100
-          }
+            doctype: "Customer",
+            fields: ["name", "customer_name"],
+            limit: 100,
+          },
         });
         this.customers = response.data.message;
       } catch (error) {
-        console.error('Error fetching customers:', error);
+        console.error("Error fetching customers:", error);
       }
     },
     async fetchItems() {
       try {
-        const response = await axios.get('/api/method/frappe.client.get_list', {
+        const response = await api.get("/api/method/frappe.client.get_list", {
           params: {
-            doctype: 'Item',
-            fields: ['name', 'item_name', 'standard_rate'],
-            filters: [['disabled', '=', 0]],
-            limit: 100
-          }
+            doctype: "Item",
+            fields: ["name", "item_name", "standard_rate"],
+            filters: [["disabled", "=", 0]],
+            limit: 100,
+          },
         });
         this.items = response.data.message;
       } catch (error) {
-        console.error('Error fetching items:', error);
+        console.error("Error fetching items:", error);
       }
     },
     async fetchTaxes() {
       try {
-        const response = await axios.get('/api/method/frappe.client.get_list', {
+        const response = await api.get("/api/method/frappe.client.get_list", {
           params: {
-            doctype: 'Sales Taxes and Charges Template',
-            fields: ['name', 'taxes.rate'],
-            limit: 20
-          }
+            doctype: "Sales Taxes and Charges Template",
+            fields: ["name", "taxes.rate"],
+            limit: 20,
+          },
         });
         this.taxes = response.data.message;
       } catch (error) {
-        console.error('Error fetching taxes:', error);
+        console.error("Error fetching taxes:", error);
       }
     },
     addItem() {
       this.form.items.push({
-        item_code: '',
+        item_code: "",
         qty: 1,
         rate: 0,
-        amount: 0
+        amount: 0,
       });
     },
     removeItem(index) {
@@ -181,14 +213,17 @@ export default {
       }
     },
     updateItemDetails(index) {
-      const selectedItem = this.items.find(item => item.name === this.form.items[index].item_code);
+      const selectedItem = this.items.find(
+        (item) => item.name === this.form.items[index].item_code
+      );
       if (selectedItem && selectedItem.standard_rate) {
         this.form.items[index].rate = selectedItem.standard_rate;
         this.calculateAmount(index);
       }
     },
     calculateAmount(index) {
-      this.form.items[index].amount = this.form.items[index].qty * this.form.items[index].rate;
+      this.form.items[index].amount =
+        this.form.items[index].qty * this.form.items[index].rate;
     },
     async submitInvoice() {
       this.loading = true;
@@ -198,51 +233,54 @@ export default {
       try {
         // Prepare the payload for ERPNext API
         const payload = {
-          doctype: 'Sales Invoice',
+          doctype: "Sales Invoice",
           customer: this.form.customer,
           posting_date: this.form.posting_date,
           due_date: this.form.due_date || this.form.posting_date,
-          items: this.form.items.map(item => ({
+          items: this.form.items.map((item) => ({
             item_code: item.item_code,
             qty: item.qty,
             rate: item.rate,
-            amount: item.amount
+            amount: item.amount,
           })),
-          taxes: this.form.taxes.map(tax => ({
-            charge_type: 'On Net Total',
+          taxes: this.form.taxes.map((tax) => ({
+            charge_type: "On Net Total",
             account_head: tax,
-            rate: this.taxes.find(t => t.name === tax)?.taxes?.[0]?.rate || 0
-          }))
+            rate: this.taxes.find((t) => t.name === tax)?.taxes?.[0]?.rate || 0,
+          })),
         };
 
-        const response = await axios.post('/api/method/frappe.client.insert', {
-          doc: payload
+        const response = await api.post("/api/method/frappe.client.insert", {
+          doc: payload,
         });
 
         this.success = response.data.message.name;
         this.resetForm();
       } catch (error) {
-        console.error('Error creating invoice:', error);
-        this.error = error.response?.data?.message || 'Failed to create invoice';
+        console.error("Error creating invoice:", error);
+        this.error =
+          error.response?.data?.message || "Failed to create invoice";
       } finally {
         this.loading = false;
       }
     },
     resetForm() {
       this.form = {
-        customer: '',
+        customer: "",
         posting_date: new Date().toISOString().slice(0, 10),
-        due_date: '',
-        items: [{
-          item_code: '',
-          qty: 1,
-          rate: 0,
-          amount: 0
-        }],
-        taxes: []
+        due_date: "",
+        items: [
+          {
+            item_code: "",
+            qty: 1,
+            rate: 0,
+            amount: 0,
+          },
+        ],
+        taxes: [],
       };
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -253,7 +291,7 @@ export default {
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
 .form-group {
@@ -308,7 +346,7 @@ export default {
 }
 
 .btn-add {
-  background: #4CAF50;
+  background: #4caf50;
   color: white;
   border: none;
   padding: 8px 15px;
@@ -317,7 +355,7 @@ export default {
 }
 
 .btn-submit {
-  background: #2196F3;
+  background: #2196f3;
   color: white;
   border: none;
   padding: 10px 20px;
